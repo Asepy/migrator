@@ -1,11 +1,15 @@
 package py.com.asepy.migrator.mapper;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import py.com.asepy.migrator.entity.MembersEntity;
 import py.com.asepy.migrator.repository.CityRepository;
 import py.com.asepy.migrator.repository.DepartmentRepository;
 import py.com.asepy.migrator.repository.RubroRepository;
 
+import java.sql.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.Year;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
@@ -16,6 +20,8 @@ public class MemberMapper {
     private final DepartmentRepository departmentRepository;
     private final CityRepository cityRepository;
     private final RubroRepository rubroRepository;
+    private SimpleDateFormat FORMAT_DDMMYY = new SimpleDateFormat("dd/MM/yy");
+    private SimpleDateFormat FORMAT_YYYYMMDD = new SimpleDateFormat("yyyy-MM-dd");
 
     MemberMapper( DepartmentRepository departmentRepository, CityRepository cityRepository, RubroRepository rubroRepository){
         this.departmentRepository = departmentRepository;
@@ -32,9 +38,8 @@ public class MemberMapper {
                 case "ID":
                     member.setRefId(Integer.parseInt(cell));
                     break;
-                //TODO ver como debe ser el enum
                 case "Membresía":
-                    member.setMembershipType(cell.toUpperCase());
+                    member.setMembershipTypeFromCsv(cell);
                     break;
                 case "Nombre":
                     member.setName(cell);
@@ -68,7 +73,7 @@ public class MemberMapper {
                     member.setStartedBusinessYear(Year.parse(cell, DateTimeFormatter.ofPattern("yyyy")));
                     break;
                 case "Cantidad de empleados (si no aplica: 0)":
-                    if(!cell.isBlank() || !cell.isEmpty()){
+                    if(StringUtils.isNotBlank(cell) || !cell.isEmpty()){
                         member.setNumberEmployees(Integer.parseInt(cell.trim()));
                     }
                     break;
@@ -87,30 +92,15 @@ public class MemberMapper {
                             .ifPresent(city -> member.setCityId(city.getId()));
                     break;
                 case "Fecha de nacimiento":
-                    //TODO aqui hay que ver los formatos posibles
-                    //identifico dd/MM/yy, yyyy-MM-dd
-                    String birthDate = cell;
-
-                    //member.setBirthdate(cell);
+                    if (StringUtils.isNotBlank(cell)) {
+                        member.setBirthdate(parseBirthDate(cell));
+                    }
                     break;
                 case "Celular":
-                    if(cell.isEmpty() || cell.isBlank()) break;
-                    String cellphoneInRow = cell;
-                    String cellphoneToInsert;
-
-                    //TODO este caso verificarlo bien
-                    if(cellphoneInRow.contains("/")){
-                        cellphoneInRow = cellphoneInRow.split("/")[0];
+                    if(cell.isEmpty() || StringUtils.isBlank(cell)) {
+                        break;
                     }
-                    if(cellphoneInRow.startsWith("595")){
-                        cellphoneToInsert = cellphoneInRow.replace("595", "0");
-                    }else if(!cellphoneInRow.startsWith("0")){
-                        cellphoneToInsert = "0" + cellphoneInRow;
-                    }else {
-                        cellphoneToInsert = cellphoneInRow;
-                    }
-
-                    member.setCellphone(cellphoneToInsert);
+                    member.setCellphone(parseCellphone(cell));
                     break;
                 case "LinkedIn":
                     member.setLinkedinProfile(cell);
@@ -134,5 +124,43 @@ public class MemberMapper {
             member.setStatus("ACTIVE");
         }
         return member;
+    }
+
+    private String parseCellphone(String cell) {
+        String cellphoneInRow = cell;
+        String cellphoneToInsert;
+
+        //TODO este caso verificarlo bien
+        if(cellphoneInRow.contains("/")){
+            cellphoneInRow = cellphoneInRow.split("/")[0];
+        }
+        if(cellphoneInRow.startsWith("595")){
+            cellphoneToInsert = cellphoneInRow.replace("595", "0");
+        }else if(!cellphoneInRow.startsWith("0")){
+            cellphoneToInsert = "0" + cellphoneInRow;
+        }else {
+            cellphoneToInsert = cellphoneInRow;
+        }
+
+        return cellphoneToInsert;
+    }
+
+    private Date parseBirthDate(String cell) {
+        java.util.Date parse = null;
+        try {
+            parse = FORMAT_DDMMYY.parse(cell);
+        } catch (ParseException e) {
+        }
+
+        try {
+            parse = FORMAT_YYYYMMDD.parse(cell);
+        } catch (ParseException e) {
+        }
+
+        if (parse != null) {
+            return new java.sql.Date(parse.getTime());
+        }
+
+        return null;
     }
 }

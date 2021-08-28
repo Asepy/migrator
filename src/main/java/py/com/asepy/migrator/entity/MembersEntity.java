@@ -1,10 +1,13 @@
 package py.com.asepy.migrator.entity;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import py.com.asepy.migrator.converter.YearAttributeConverter;
 
 import javax.persistence.*;
 import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.Year;
 import java.util.Objects;
 
@@ -20,7 +23,7 @@ public class MembersEntity {
     private Integer numberEmployees;
     private String nationalId;
     private String name;
-    private String membershipType;
+    private MembershipType membershipType;
     private Integer mcc;
     private String mailId;
     private String emailStatus;
@@ -145,12 +148,19 @@ public class MembersEntity {
 
     @Basic
     @Column(name = "membership_type")
-    public String getMembershipType() {
+    @Enumerated(EnumType.STRING)
+    public MembershipType getMembershipType() {
         return membershipType;
     }
 
-    public void setMembershipType(String membershipType) {
+    public MembersEntity setMembershipType(MembershipType membershipType) {
         this.membershipType = membershipType;
+        return this;
+    }
+
+    @Transient
+    public void setMembershipTypeFromCsv(String membershipType) {
+        this.membershipType = MembershipType.fromCSVCellValue(membershipType);
     }
 
     @Basic
@@ -466,6 +476,23 @@ public class MembersEntity {
         this.startName = startName;
     }*/
 
+    @PreUpdate
+    public void preUpdate() {
+        setDefaultStartDate();
+    }
+
+
+    @PrePersist
+    public void prePersist() {
+        setDefaultStartDate();
+    }
+
+    private void setDefaultStartDate() {
+        if (startDate == null) {
+            startDate = Timestamp.from(Instant.now());
+        }
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -510,8 +537,8 @@ public class MembersEntity {
                 Objects.equals(memberDefinedRubro, that.memberDefinedRubro) &&
                 Objects.equals(plusBillingAddress, that.plusBillingAddress) &&
                 Objects.equals(plusPaymentMethod, that.plusPaymentMethod) &&
-                Objects.equals(refId, that.refId) ;
-                /*Objects.equals(startName, that.startName);*/
+                Objects.equals(refId, that.refId);
+        /*Objects.equals(startName, that.startName);*/
     }
 
     @Override
@@ -519,50 +546,49 @@ public class MembersEntity {
         return Objects.hash(website, surname, startDate, rucStatus, ruc, paymentOption, numberEmployees, nationalId, name, membershipType, mcc, mailId, emailStatus, businessName, cityId, cellphone, /*birthdate,*/ id, confirmationDate, fancyBusinessName, annualTurnover, status, departmentId, gender, address, educationLevel, linkedinProfile, twitterProfile, facebookProfile, businessOrgType, companyRole, startedBusinessYear, /*birhtdate,*/ departmentId, sector, rubroId, memberDefinedRubro, plusBillingAddress, plusPaymentMethod, refId/*, startName*/);
     }
 
+
+
     @Override
     public String toString() {
-        return "MembersEntity{" +
-                "website='" + website + '\'' +
-                ", surname='" + surname + '\'' +
-                ", startDate=" + startDate +
-                ", rucStatus='" + rucStatus + '\'' +
-                ", ruc='" + ruc + '\'' +
-                ", paymentOption=" + paymentOption +
-                ", numberEmployees=" + numberEmployees +
-                ", nationalId='" + nationalId + '\'' +
-                ", name='" + name + '\'' +
-                ", membershipType='" + membershipType + '\'' +
-                ", mcc=" + mcc +
-                ", mailId='" + mailId + '\'' +
-                ", emailStatus='" + emailStatus + '\'' +
-                ", businessName='" + businessName + '\'' +
-                ", cityId=" + cityId +
-                ", cellphone='" + cellphone + '\'' +
-               // ", birthdate=" + birthdate +
-                ", id='" + id + '\'' +
-                ", confirmationDate=" + confirmationDate +
-                ", fancyBusinessName='" + fancyBusinessName + '\'' +
-                ", annualTurnover='" + annualTurnover + '\'' +
-                ", status='" + status + '\'' +
-                ", deparmentId=" + departmentId +
-                ", gender='" + gender + '\'' +
-                ", address='" + address + '\'' +
-                ", educationLevel='" + educationLevel + '\'' +
-                ", linkedinProfile='" + linkedinProfile + '\'' +
-                ", twitterProfile='" + twitterProfile + '\'' +
-                ", facebookProfile='" + facebookProfile + '\'' +
-                ", businessOrgType='" + businessOrgType + '\'' +
-                ", companyRole='" + companyRole + '\'' +
-                ", startedBusinessYear=" + startedBusinessYear +
-                //", birhtdate='" + birhtdate + '\'' +
-                ", departmentId='" + departmentId + '\'' +
-                ", sector='" + sector + '\'' +
-                ", rubroId=" + rubroId +
-                ", memberDefinedRubro='" + memberDefinedRubro + '\'' +
-                ", plusBillingAddress='" + plusBillingAddress + '\'' +
-                ", plusPaymentMethod='" + plusPaymentMethod + '\'' +
-                ", refId=" + refId +
-                /*", startName='" + startName + '\'' +*/
-                '}';
+        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+                .append("website", website)
+                .append("surname", surname)
+                .append("startDate", startDate)
+                .append("rucStatus", rucStatus)
+                .append("ruc", ruc)
+                .append("paymentOption", paymentOption)
+                .append("numberEmployees", numberEmployees)
+                .append("nationalId", nationalId)
+                .append("name", name)
+                .append("membershipType", membershipType)
+                .append("mcc", mcc)
+                .append("mailId", mailId)
+                .append("emailStatus", emailStatus)
+                .append("businessName", businessName)
+                .append("cityId", cityId)
+                .append("cellphone", cellphone)
+                .append("birthdate", birthdate)
+                .append("id", id)
+                .append("confirmationDate", confirmationDate)
+                .append("fancyBusinessName", fancyBusinessName)
+                .append("annualTurnover", annualTurnover)
+                .append("status", status)
+                .append("departmentId", departmentId)
+                .append("gender", gender)
+                .append("address", address)
+                .append("educationLevel", educationLevel)
+                .append("linkedinProfile", linkedinProfile)
+                .append("twitterProfile", twitterProfile)
+                .append("facebookProfile", facebookProfile)
+                .append("businessOrgType", businessOrgType)
+                .append("companyRole", companyRole)
+                .append("startedBusinessYear", startedBusinessYear)
+                .append("sector", sector)
+                .append("rubroId", rubroId)
+                .append("memberDefinedRubro", memberDefinedRubro)
+                .append("plusBillingAddress", plusBillingAddress)
+                .append("plusPaymentMethod", plusPaymentMethod)
+                .append("refId", refId)
+                .toString();
     }
 }
