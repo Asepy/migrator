@@ -4,19 +4,19 @@ import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "cities", schema = "basic")
-public class CitiesEntity {
-    private Integer id;
+@Table(name = "cities", schema = "basic", catalog = "basic")
+public class CityEntity {
+    private Long id;
     private String name;
     private Integer departmentId;
 
     @Id
     @Column(name = "id")
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -44,7 +44,7 @@ public class CitiesEntity {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        CitiesEntity that = (CitiesEntity) o;
+        CityEntity that = (CityEntity) o;
         return Objects.equals(id, that.id) &&
                 Objects.equals(name, that.name) &&
                 Objects.equals(departmentId, that.departmentId);

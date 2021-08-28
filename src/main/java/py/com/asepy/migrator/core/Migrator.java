@@ -12,6 +12,8 @@ import py.com.asepy.migrator.mapper.MemberMapper;
 import py.com.asepy.migrator.repository.MemberRepository;
 
 import java.io.FileReader;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.*;
 
 
@@ -45,23 +47,26 @@ public class Migrator {
 
             List<String[]> allData = csvReader.readAll();
 
-            String[] csvHeaders = allData.get(0);
+            String[] csvHeaders = allData.get(2);
             logger.info("CSV Head");
             logger.info(Arrays.toString(csvHeaders));
             Map<Integer, String> csvHeaderPositionAttNameMap = getCsvPositionAttMap(csvHeaders);
             logger.info("CSV Headers mapping");
             logger.info(String.valueOf(csvHeaderPositionAttNameMap));
             // Print Data.
-            for (int i= 1; i < allData.size() ; i++) {
+            for (int i= 2; i < allData.size() ; i++) {
                 String[] row = allData.get(i);
+                if(row[2].equals("Status")) continue;
                 logger.info("Row to process:");
                 logger.info(Arrays.toString(row));
                 MembersEntity memberEntity = memberMapper.fromCsvRow(csvHeaderPositionAttNameMap, row);
                 Optional<MembersEntity> currentMember = repository.findFirstByRefId(memberEntity.getRefId());
                 if(currentMember.isPresent()){
                     memberEntity.setId(currentMember.get().getId());
+                    memberEntity.setStartDate(currentMember.get().getStartDate());
                 } else{
                     memberEntity.setId(UUID.randomUUID().toString());
+                    memberEntity.setStartDate(Timestamp.valueOf(LocalDateTime.now()));
                 }
                 logger.info("Entity to save:");
                 logger.info(memberEntity.toString());

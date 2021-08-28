@@ -3,13 +3,12 @@ package py.com.asepy.migrator.entity;
 import py.com.asepy.migrator.converter.YearAttributeConverter;
 
 import javax.persistence.*;
-import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.Year;
 import java.util.Objects;
 
 @Entity
-@Table(name = "members2", schema = "members")
+@Table(name = "members2", schema = "members", catalog = "members")
 public class MembersEntity {
     private String website;
     private String surname;
@@ -25,15 +24,15 @@ public class MembersEntity {
     private String mailId;
     private String emailStatus;
     private String businessName;
-    private Integer cityId;
+    private Long cityId;
     private String cellphone;
-    private Date birthdate;
+    //private Date birthdate;
     private String id;
     private Timestamp confirmationDate;
     private String fancyBusinessName;
     private String annualTurnover;
     private String status;
-    private Long deparmentId;
+    private Long departmentId;
     private String gender;
     private String address;
     private String educationLevel;
@@ -43,8 +42,8 @@ public class MembersEntity {
     private String businessOrgType;
     private String companyRole;
     private Year startedBusinessYear;
-    private String birhtdate;
-    private String departmentId;
+    //private String birhtdate;
+    //private String departmentId;
     private String sector;
     private Long rubroId;
     private String memberDefinedRubro;
@@ -195,11 +194,11 @@ public class MembersEntity {
 
     @Basic
     @Column(name = "city_id")
-    public Integer getCityId() {
+    public Long getCityId() {
         return cityId;
     }
 
-    public void setCityId(Integer cityId) {
+    public void setCityId(Long cityId) {
         this.cityId = cityId;
     }
 
@@ -213,7 +212,7 @@ public class MembersEntity {
         this.cellphone = cellphone;
     }
 
-    @Basic
+    /*@Basic
     @Column(name = "birthdate")
     public Date getBirthdate() {
         return birthdate;
@@ -221,7 +220,7 @@ public class MembersEntity {
 
     public void setBirthdate(Date birthdate) {
         this.birthdate = birthdate;
-    }
+    }*/
 
     @Id
     @Column(name = "ID")
@@ -274,13 +273,13 @@ public class MembersEntity {
     }
 
     @Basic
-    @Column(name = "deparment_id")
-    public Long getDeparmentId() {
-        return deparmentId;
+    @Column(name = "department_id")
+    public Long getDepartmentId() {
+        return departmentId;
     }
 
-    public void setDeparmentId(Long deparmentId) {
-        this.deparmentId = deparmentId;
+    public void setDepartmentId(Long departmentId) {
+        this.departmentId = departmentId;
     }
 
     @Basic
@@ -376,26 +375,26 @@ public class MembersEntity {
         this.startedBusinessYear = startedBusinessYear;
     }
 
-    @Basic
-    @Column(name = "birhtdate")
+    /*@Basic
+    @Column(name = "birthdate")
     public String getBirhtdate() {
         return birhtdate;
     }
 
     public void setBirhtdate(String birhtdate) {
         this.birhtdate = birhtdate;
-    }
+    }*/
 
-    @Basic
+    /*@Basic
     @Column(name = "department_id")
-    public String getDepartmentId() {
+    public Long getDepartmentId() {
         return departmentId;
     }
 
-    public void setDepartmentId(String departmentId) {
+    public void setDepartmentId(Long departmentId) {
         this.departmentId = departmentId;
     }
-
+*/
     @Basic
     @Column(name = "sector")
     public String getSector() {
@@ -487,13 +486,13 @@ public class MembersEntity {
                 Objects.equals(businessName, that.businessName) &&
                 Objects.equals(cityId, that.cityId) &&
                 Objects.equals(cellphone, that.cellphone) &&
-                Objects.equals(birthdate, that.birthdate) &&
+                //Objects.equals(birthdate, that.birthdate) &&
                 Objects.equals(id, that.id) &&
                 Objects.equals(confirmationDate, that.confirmationDate) &&
                 Objects.equals(fancyBusinessName, that.fancyBusinessName) &&
                 Objects.equals(annualTurnover, that.annualTurnover) &&
                 Objects.equals(status, that.status) &&
-                Objects.equals(deparmentId, that.deparmentId) &&
+                Objects.equals(departmentId, that.departmentId) &&
                 Objects.equals(gender, that.gender) &&
                 Objects.equals(address, that.address) &&
                 Objects.equals(educationLevel, that.educationLevel) &&
@@ -503,7 +502,7 @@ public class MembersEntity {
                 Objects.equals(businessOrgType, that.businessOrgType) &&
                 Objects.equals(companyRole, that.companyRole) &&
                 Objects.equals(startedBusinessYear, that.startedBusinessYear) &&
-                Objects.equals(birhtdate, that.birhtdate) &&
+                //Objects.equals(birhtdate, that.birhtdate) &&
                 Objects.equals(departmentId, that.departmentId) &&
                 Objects.equals(sector, that.sector) &&
                 Objects.equals(rubroId, that.rubroId) &&
@@ -516,7 +515,7 @@ public class MembersEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(website, surname, startDate, rucStatus, ruc, paymentOption, numberEmployees, nationalId, name, membershipType, mcc, mailId, emailStatus, businessName, cityId, cellphone, birthdate, id, confirmationDate, fancyBusinessName, annualTurnover, status, deparmentId, gender, address, educationLevel, linkedinProfile, twitterProfile, facebookProfile, businessOrgType, companyRole, startedBusinessYear, birhtdate, departmentId, sector, rubroId, memberDefinedRubro, plusBillingAddress, plusPaymentMethod, refId/*, startName*/);
+        return Objects.hash(website, surname, startDate, rucStatus, ruc, paymentOption, numberEmployees, nationalId, name, membershipType, mcc, mailId, emailStatus, businessName, cityId, cellphone, /*birthdate,*/ id, confirmationDate, fancyBusinessName, annualTurnover, status, departmentId, gender, address, educationLevel, linkedinProfile, twitterProfile, facebookProfile, businessOrgType, companyRole, startedBusinessYear, /*birhtdate,*/ departmentId, sector, rubroId, memberDefinedRubro, plusBillingAddress, plusPaymentMethod, refId/*, startName*/);
     }
 
     @Override
@@ -538,13 +537,13 @@ public class MembersEntity {
                 ", businessName='" + businessName + '\'' +
                 ", cityId=" + cityId +
                 ", cellphone='" + cellphone + '\'' +
-                ", birthdate=" + birthdate +
+               // ", birthdate=" + birthdate +
                 ", id='" + id + '\'' +
                 ", confirmationDate=" + confirmationDate +
                 ", fancyBusinessName='" + fancyBusinessName + '\'' +
                 ", annualTurnover='" + annualTurnover + '\'' +
                 ", status='" + status + '\'' +
-                ", deparmentId=" + deparmentId +
+                ", deparmentId=" + departmentId +
                 ", gender='" + gender + '\'' +
                 ", address='" + address + '\'' +
                 ", educationLevel='" + educationLevel + '\'' +
@@ -554,7 +553,7 @@ public class MembersEntity {
                 ", businessOrgType='" + businessOrgType + '\'' +
                 ", companyRole='" + companyRole + '\'' +
                 ", startedBusinessYear=" + startedBusinessYear +
-                ", birhtdate='" + birhtdate + '\'' +
+                //", birhtdate='" + birhtdate + '\'' +
                 ", departmentId='" + departmentId + '\'' +
                 ", sector='" + sector + '\'' +
                 ", rubroId=" + rubroId +
