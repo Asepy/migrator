@@ -14,7 +14,7 @@
 	<name>migrator</name>
 	<description>Migrator project from CSV to Database</description>
 	<properties>
-		<java.version>11</java.version>
+		<java.version>8</java.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -50,6 +50,11 @@
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>mysql</groupId>-->
+<!--			<artifactId>mysql-connector-java</artifactId>-->
+<!--			<version>8.0.25</version>-->
+<!--		</dependency>-->
 
 	</dependencies>
 
