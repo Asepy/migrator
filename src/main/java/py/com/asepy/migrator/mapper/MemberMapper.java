@@ -28,10 +28,13 @@ public class MemberMapper {
         for (int i = 0; i< csvRow.length ; i++){
             String cell = csvRow[i];
             if(cell == null || "-".equals(cell)) continue;
-            //TODO tambien faltaria el membership type
             switch (csvHeaderPositionNameMap.get(i)) {
                 case "ID":
                     member.setRefId(Integer.parseInt(cell));
+                    break;
+                //TODO ver como debe ser el enum
+                case "Membresía":
+                    member.setMembershipType(cell.toUpperCase());
                     break;
                 case "Nombre":
                     member.setName(cell);
