@@ -6,6 +6,8 @@ import py.com.asepy.migrator.repository.CityRepository;
 import py.com.asepy.migrator.repository.DepartmentRepository;
 import py.com.asepy.migrator.repository.RubroRepository;
 
+import java.time.Year;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 @Component
@@ -59,11 +61,19 @@ public class MemberMapper {
                     rubroRepository.getByDescription(cell)
                             .ifPresent(rubro -> member.setRubroId(rubro.getId()));
                     break;
-                //TODO estee caso verificar mejor
+                case "Año de fundación":
+                    member.setStartedBusinessYear(Year.parse(cell, DateTimeFormatter.ofPattern("yyyy")));
+                    break;
                 case "Cantidad de empleados (si no aplica: 0)":
                     if(!cell.isBlank() || !cell.isEmpty()){
                         member.setNumberEmployees(Integer.parseInt(cell.trim()));
                     }
+                    break;
+                case "Sitio web o redes sociales":
+                    member.setWebsite(cell);
+                    break;
+                case "Nivel de Estudios":
+                    member.setEducationLevel(cell);
                     break;
                 case "Departamento":
                     departmentRepository.getByName(cell)
@@ -77,7 +87,8 @@ public class MemberMapper {
                     //TODO aqui hay que ver los formatos posibles
                     //identifico dd/MM/yy, yyyy-MM-dd
                     String birthDate = cell;
-                    //member.set(cell);
+
+                    //member.setBirthdate(cell);
                     break;
                 case "Celular":
                     if(cell.isEmpty() || cell.isBlank()) break;
@@ -97,6 +108,15 @@ public class MemberMapper {
                     }
 
                     member.setCellphone(cellphoneToInsert);
+                    break;
+                case "LinkedIn":
+                    member.setLinkedinProfile(cell);
+                    break;
+                case "Twitter":
+                    member.setTwitterProfile(cell);
+                    break;
+                case "Facebook":
+                    member.setFacebookProfile(cell);
                     break;
                 default:
                     break;

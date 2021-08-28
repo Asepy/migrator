@@ -3,12 +3,13 @@ package py.com.asepy.migrator.entity;
 import py.com.asepy.migrator.converter.YearAttributeConverter;
 
 import javax.persistence.*;
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.Year;
 import java.util.Objects;
 
 @Entity
-@Table(name = "members2", schema = "members", catalog = "members")
+@Table(name = "members", schema = "members", catalog = "members")
 public class MembersEntity {
     private String website;
     private String surname;
@@ -26,7 +27,7 @@ public class MembersEntity {
     private String businessName;
     private Long cityId;
     private String cellphone;
-    //private Date birthdate;
+    private Date birthdate;
     private String id;
     private Timestamp confirmationDate;
     private String fancyBusinessName;
@@ -212,7 +213,7 @@ public class MembersEntity {
         this.cellphone = cellphone;
     }
 
-    /*@Basic
+    @Basic
     @Column(name = "birthdate")
     public Date getBirthdate() {
         return birthdate;
@@ -220,7 +221,7 @@ public class MembersEntity {
 
     public void setBirthdate(Date birthdate) {
         this.birthdate = birthdate;
-    }*/
+    }
 
     @Id
     @Column(name = "ID")

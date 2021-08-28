@@ -6,8 +6,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import py.com.asepy.migrator.core.Migrator;
 
 import javax.annotation.PostConstruct;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @SpringBootApplication
 public class MigratorApplication {
