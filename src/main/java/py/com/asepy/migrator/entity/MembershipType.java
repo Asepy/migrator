@@ -15,6 +15,8 @@ public enum MembershipType {
 
     private static List<String> defaultMappings = Arrays.asList("SOCIO", "EMPRENDEDOR");
 
+    private static List<String> plusMappings = Arrays.asList("SOCIO PLUS", "PLUS");
+
     public static MembershipType fromCSVCellValue(String cell) {
         if (StringUtils.isBlank(cell)) {
             return BASICO;
@@ -22,6 +24,10 @@ public enum MembershipType {
 
         if (defaultMappings.contains(cell.toUpperCase())) {
             return BASICO;
+        }
+
+        if (plusMappings.contains(cell.toUpperCase())) {
+            return PLUS;
         }
 
         MembershipType membershipType = Arrays.stream(values())

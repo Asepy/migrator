@@ -18,7 +18,7 @@ public class MigratorApplication {
 	}
 
 	@PostConstruct
-	public void initMigration() {
+	public void initMigration() throws Exception{
 		migrator.startMigration();
 	}
 

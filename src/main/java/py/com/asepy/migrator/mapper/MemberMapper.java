@@ -70,7 +70,9 @@ public class MemberMapper {
                             .ifPresent(rubro -> member.setRubroId(rubro.getId()));
                     break;
                 case "Año de fundación":
-                    member.setStartedBusinessYear(Year.parse(cell, DateTimeFormatter.ofPattern("yyyy")));
+                    if(StringUtils.isNotBlank(cell)){
+                        member.setStartedBusinessYear(Year.parse(cell, DateTimeFormatter.ofPattern("yyyy")));
+                    }
                     break;
                 case "Cantidad de empleados (si no aplica: 0)":
                     if(StringUtils.isNotBlank(cell) || !cell.isEmpty()){
@@ -103,12 +105,21 @@ public class MemberMapper {
                     member.setCellphone(parseCellphone(cell));
                     break;
                 case "LinkedIn":
+                    if (cell.length()>150){
+                        cell = cell.substring(0,100);
+                    }
                     member.setLinkedinProfile(cell);
                     break;
                 case "Twitter":
+                    if (cell.length()>150){
+                        cell = cell.substring(0,100);
+                    }
                     member.setTwitterProfile(cell);
                     break;
                 case "Facebook":
+                    if (cell.length()>150){
+                        cell = cell.substring(0,100);
+                    }
                     member.setFacebookProfile(cell);
                     break;
                 default:
