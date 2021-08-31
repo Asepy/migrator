@@ -76,31 +76,48 @@ public class Migrator {
     private void mapRowsToMemberAndSaveOrLoadErrors(List<String[]> allRows, Map<Integer, String> csvHeaderPositionAttNameMap, List<String> errors) {
         for (int i = 2; i < allRows.size(); i++) {
             String[] row = allRows.get(i);
-            if (row[2].equals("Status")) continue;
-            logger.info("Row to process: {} ", Arrays.toString(row));
-            MembersEntity memberEntity = memberMapper.fromCsvRow(csvHeaderPositionAttNameMap, row);
-            Optional<MembersEntity> currentMember = repository.findFirstByRefId(memberEntity.getRefId());
-            if (currentMember.isPresent()) {
-                memberEntity.setId(currentMember.get().getId());
-                memberEntity.setStartDate(currentMember.get().getStartDate());
-            } else {
-                memberEntity.setId(UUID.randomUUID().toString());
-                memberEntity.setStartDate(Timestamp.valueOf(LocalDateTime.now()));
+            if (!row[2].equals("Status")){
+                logger.info("Row to process: {} ", Arrays.toString(row));
+                MembersEntity memberEntity = mapRowToMembersEntityOrAddMapError(csvHeaderPositionAttNameMap, errors, row);
+                if (memberEntity == null) continue;
+                Optional<MembersEntity> currentMember = repository.findFirstByRefId(memberEntity.getRefId());
+                if (currentMember.isPresent()) {
+                    memberEntity.setId(currentMember.get().getId());
+                    memberEntity.setStartDate(currentMember.get().getStartDate());
+                } else {
+                    memberEntity.setId(UUID.randomUUID().toString());
+                    memberEntity.setStartDate(Timestamp.valueOf(LocalDateTime.now()));
+                }
+                saveMemberRowOrAddError(memberEntity, errors, row);
             }
-            logger.info("Entity to save : {}", memberEntity);
-            String rowNumber = row[0];
-            saveMemberRowOrAddErrorWithPrefix(memberEntity, errors, rowNumber);
         }
     }
 
-    private void saveMemberRowOrAddErrorWithPrefix(MembersEntity memberEntity, List<String> errors, String errorPrefix) {
+    private MembersEntity mapRowToMembersEntityOrAddMapError(Map<Integer, String> csvHeaderPositionAttNameMap, List<String> errors, String[] row) {
+        MembersEntity memberEntity;
+        try {
+            memberEntity = memberMapper.fromCsvRow(csvHeaderPositionAttNameMap, row);
+        }catch (Exception e){
+            addErrorFromRowAndExceptionToList(row, e, errors);
+            return null;
+        }
+        return memberEntity;
+    }
+
+    private void saveMemberRowOrAddError(MembersEntity memberEntity, List<String> errors, String[] row) {
         try {
             repository.save(memberEntity);
         }catch (DataAccessException e) {
             logger.warn("Error in this row");
-            String errorMessage = errorPrefix + " - Error: "+e.getCause().getCause().getMessage();
-            errors.add(errorMessage);
+            logger.info("Entity to save : {}", memberEntity);
+            addErrorFromRowAndExceptionToList(row, e, errors);
         }
+    }
+
+    private void addErrorFromRowAndExceptionToList(String[] row, Exception e, List<String> errors){
+        logger.error("an error occurred, adding to the error list, exception", e);
+        String errorMessage = row[0] + " - Error: " + (e.getCause()!=null && e.getCause().getCause() != null ? e.getCause().getCause().getMessage() : e.getMessage());
+        errors.add(errorMessage);
     }
 
     private void writeErrorsFile(List<String> rowsWithProblems) {

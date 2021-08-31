@@ -20,8 +20,8 @@ public class MemberMapper {
     private final DepartmentRepository departmentRepository;
     private final CityRepository cityRepository;
     private final RubroRepository rubroRepository;
-    private SimpleDateFormat FORMAT_DDMMYY = new SimpleDateFormat("dd/MM/yy");
-    private SimpleDateFormat FORMAT_YYYYMMDD = new SimpleDateFormat("yyyy-MM-dd");
+    private final SimpleDateFormat FORMAT_DDMMYY = new SimpleDateFormat("dd/MM/yy");
+    private final SimpleDateFormat FORMAT_YYYYMMDD = new SimpleDateFormat("yyyy-MM-dd");
 
     MemberMapper( DepartmentRepository departmentRepository, CityRepository cityRepository, RubroRepository rubroRepository){
         this.departmentRepository = departmentRepository;
