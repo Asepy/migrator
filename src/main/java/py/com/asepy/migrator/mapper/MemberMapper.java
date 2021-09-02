@@ -1,6 +1,8 @@
 package py.com.asepy.migrator.mapper;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import py.com.asepy.migrator.entity.MembersEntity;
 import py.com.asepy.migrator.repository.CityRepository;
@@ -12,10 +14,14 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Year;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 
 @Component
 public class MemberMapper {
+
+    Logger logger = LoggerFactory.getLogger(MemberMapper.class);
+
 
     private final DepartmentRepository departmentRepository;
     private final CityRepository cityRepository;
@@ -29,7 +35,7 @@ public class MemberMapper {
         this.rubroRepository = rubroRepository;
     }
 
-    public MembersEntity fromCsvRow(Map<Integer, String> csvHeaderPositionNameMap  , String[] csvRow){
+    public MembersEntity fromCsvRow(Map<Integer, String> csvHeaderPositionNameMap, String[] csvRow, List<String> warnings){
         MembersEntity member = new MembersEntity();
         for (int i = 0; i< csvRow.length ; i++){
             String cell = csvRow[i];
@@ -54,7 +60,12 @@ public class MemberMapper {
                     member.setNationalId(cell);
                     break;
                 case "R.U.C":
-                    member.setRuc(cell);
+                    if(cell.length()<13 && cell.matches(".*\\d.*")){
+                        member.setRuc(cell);
+                    }else{
+                      logger.warn("RUC no processed");
+                      warnings.add(csvRow[0]+ " - RUC ["+cell+"] with invalid format, no processed");
+                    }
                     break;
                 case "Razón social":
                     member.setBusinessName(cell);
@@ -70,20 +81,25 @@ public class MemberMapper {
                             .ifPresent(rubro -> member.setRubroId(rubro.getId()));
                     break;
                 case "Año de fundación":
-                    if(StringUtils.isNotBlank(cell)){
-                        member.setStartedBusinessYear(Year.parse(cell, DateTimeFormatter.ofPattern("yyyy")));
-                    }
+                    Year foundationYear = parseFoundationYear(csvRow, warnings, cell);
+                    member.setStartedBusinessYear(foundationYear);
                     break;
                 case "Cantidad de empleados (si no aplica: 0)":
-                    if(StringUtils.isNotBlank(cell) || !cell.isEmpty()){
-                        member.setNumberEmployees(Integer.parseInt(cell.trim()));
-                    }
+                    Integer emplyeeQuantity = parseEmployeeQuantity(csvRow, warnings, cell);
+                    member.setNumberEmployees(emplyeeQuantity);
                     break;
                 case "Sitio web o redes sociales":
                     member.setWebsite(cell);
                     break;
                 case "Nivel de Estudios":
-                    member.setEducationLevel(cell);
+                    if(cell.length()<31){
+                        member.setEducationLevel(cell);
+                    }else {
+                        logger.warn("Education Level too large");
+                        logger.info("Adding to warnings");
+                        warnings.add(csvRow[0]+ " - EDUCATION LEVEL ["+ cell +"] too large, no processed");
+                    }
+
                     break;
                 case "Departamento":
                     departmentRepository.getByName(cell)
@@ -102,7 +118,7 @@ public class MemberMapper {
                     if(cell.isEmpty() || StringUtils.isBlank(cell)) {
                         break;
                     }
-                    member.setCellphone(parseCellphone(cell));
+                    member.setCellphone(parseCellphone(cell, csvRow, warnings));
                     break;
                 case "LinkedIn":
                     if (cell.length()>150){
@@ -137,7 +153,35 @@ public class MemberMapper {
         return member;
     }
 
-    private String parseCellphone(String cell) {
+    private Year parseFoundationYear(String[] csvRow, List<String> warnings, String cell) {
+        if(StringUtils.isNotBlank(cell)){
+            try{
+                return Year.parse(cell, DateTimeFormatter.ofPattern("yyyy"));
+            }catch (Exception e){
+                logger.warn("Error trying to parse the foundation year", e);
+                logger.info("Adding to warnings");
+                warnings.add(csvRow[0]+ " - FOUNDATION YEAR - ["+ cell +"] with invalid format, must be like 2020, no processed");
+                return null;
+            }
+        }
+        return null;
+    }
+
+    private Integer parseEmployeeQuantity(String[] csvRow, List<String> warnings, String cell) {
+        if(StringUtils.isNotBlank(cell) || !cell.isEmpty()){
+            try {
+                return Integer.parseInt(cell.trim());
+            }catch (NumberFormatException e){
+                logger.warn("Error trying to parse employees quantity", e);
+                logger.info("Adding to warnings");
+                warnings.add(csvRow[0]+ " - EMPLOYEES QUANTITY - ["+ cell +"] must be a number, no processed");
+                return null;
+            }
+        }
+        return null;
+    }
+
+    private String parseCellphone(String cell, String[] rows, List<String> warnings) {
         String cellphoneInRow = cell;
         String cellphoneToInsert;
 
@@ -150,10 +194,18 @@ public class MemberMapper {
         }else if(!cellphoneInRow.startsWith("0")){
             cellphoneToInsert = "0" + cellphoneInRow;
         }else {
-            cellphoneToInsert = cellphoneInRow;
+            cellphoneToInsert = cellphoneInRow.trim();
         }
 
-        return cellphoneToInsert;
+        cellphoneToInsert = cellphoneToInsert.trim().replace(" ", "");
+
+        if(cellphoneToInsert.length()>10) {
+            logger.warn("Cellphone will be shortened");
+            logger.info("Adding to warnings");
+            cellphoneToInsert = cellphoneToInsert.substring(0,9);
+            warnings.add(rows[0]+" - CELLPHONE is shortened to ["+cellphoneToInsert+"]");
+            return cellphoneToInsert;
+        } else return cellphoneToInsert;
     }
 
     private Date parseBirthDate(String cell) {

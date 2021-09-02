@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
+import py.com.asepy.migrator.beans.MigrationComplaint;
 import py.com.asepy.migrator.entity.MembersEntity;
 import py.com.asepy.migrator.mapper.MemberMapper;
 import py.com.asepy.migrator.repository.MemberRepository;
@@ -33,6 +34,8 @@ public class Migrator {
     private final MemberRepository repository;
     private final MemberMapper memberMapper;
 
+    private final MigrationComplaint complaints = new MigrationComplaint();
+
     public Migrator(MemberRepository repository,
                     MemberMapper memberMapper){
         this.repository = repository;
@@ -46,9 +49,10 @@ public class Migrator {
         logger.info("CSV Head {}", Arrays.toString(csvHeaders));
         Map<Integer, String> csvHeaderPositionAttNameMap = buildCsvPositionAttMap(csvHeaders);
         logger.info("CSV Headers mapping {}", csvHeaderPositionAttNameMap);
-        List<String> migrationErrors = new ArrayList<>();
-        mapRowsToMemberAndSaveOrLoadErrors(allRows, csvHeaderPositionAttNameMap, migrationErrors);
-        writeErrorsFile(migrationErrors);
+
+        mapRowsToMemberAndSaveOrLoadErrors(allRows, csvHeaderPositionAttNameMap);
+        writeComplaintFile(complaints.getErrors(), "error");
+        writeComplaintFile(complaints.getWarnings(), "warnings");
 
     }
 
@@ -73,7 +77,8 @@ public class Migrator {
         return positionDBColumnNameMap;
     }
 
-    private void mapRowsToMemberAndSaveOrLoadErrors(List<String[]> allRows, Map<Integer, String> csvHeaderPositionAttNameMap, List<String> errors) {
+    private void mapRowsToMemberAndSaveOrLoadErrors(List<String[]> allRows, Map<Integer, String> csvHeaderPositionAttNameMap) {
+        List<String> errors = complaints.getErrors();
         for (int i = 2; i < allRows.size(); i++) {
             String[] row = allRows.get(i);
             if (!row[2].equals("Status")){
@@ -88,7 +93,7 @@ public class Migrator {
                     memberEntity.setId(UUID.randomUUID().toString());
                     memberEntity.setStartDate(Timestamp.valueOf(LocalDateTime.now()));
                 }
-                saveMemberRowOrAddError(memberEntity, errors, row);
+                saveMemberRowOrAddError(memberEntity, row);
             }
         }
     }
@@ -96,44 +101,45 @@ public class Migrator {
     private MembersEntity mapRowToMembersEntityOrAddMapError(Map<Integer, String> csvHeaderPositionAttNameMap, List<String> errors, String[] row) {
         MembersEntity memberEntity;
         try {
-            memberEntity = memberMapper.fromCsvRow(csvHeaderPositionAttNameMap, row);
+            memberEntity = memberMapper.fromCsvRow(csvHeaderPositionAttNameMap, row, complaints.getWarnings());
         }catch (Exception e){
-            addErrorFromRowAndExceptionToList(row, e, errors);
+            addErrorFromRowAndExceptionToList(row, e);
             return null;
         }
         return memberEntity;
     }
 
-    private void saveMemberRowOrAddError(MembersEntity memberEntity, List<String> errors, String[] row) {
+    private void saveMemberRowOrAddError(MembersEntity memberEntity, String[] row) {
         try {
             repository.save(memberEntity);
         }catch (DataAccessException e) {
             logger.warn("Error in this row");
             logger.info("Entity to save : {}", memberEntity);
-            addErrorFromRowAndExceptionToList(row, e, errors);
+            addErrorFromRowAndExceptionToList(row, e);
         }
     }
 
-    private void addErrorFromRowAndExceptionToList(String[] row, Exception e, List<String> errors){
+    private void addErrorFromRowAndExceptionToList(String[] row, Exception e){
+        List<String> errors = complaints.getErrors();
         logger.error("an error occurred, adding to the error list, exception", e);
         String errorMessage = row[0] + " - Error: " + (e.getCause()!=null && e.getCause().getCause() != null ? e.getCause().getCause().getMessage() : e.getMessage());
         errors.add(errorMessage);
     }
 
-    private void writeErrorsFile(List<String> rowsWithProblems) {
-        if(!rowsWithProblems.isEmpty()){
-            String fileName = buildErrorFileName();
-            logger.info("Writing error file {}", fileName);
-            createErrorFIle(rowsWithProblems, fileName);
+    private void writeComplaintFile(List<String> complaints, String type) {
+        if(!complaints.isEmpty()){
+            String fileName = buildErrorFileName(type);
+            logger.info("Writing {} file {}", type, fileName);
+            createErrorFIle(complaints, fileName);
         }else {
-            logger.info("No errors detected");
+            logger.info("No {} detected", type);
         }
     }
 
-    private String buildErrorFileName(){
+    private String buildErrorFileName(String type){
         LocalDateTime now = LocalDateTime.now();
         String nowFormatted = now.format(DateTimeFormatter.ISO_DATE_TIME);
-        return "migrations-errors-"+nowFormatted+".txt";
+        return "migrations-"+type+"-"+nowFormatted+".txt";
     }
 
     private void createErrorFIle(List<String> rowsWithProblems, String fileName) {
