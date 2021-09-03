@@ -57,7 +57,7 @@ public class MemberMapper {
                     member.setMailId(cell);
                     break;
                 case "Cédula de Identidad":
-                    member.setNationalId(cell);
+                    member.setNationalId(cell.replace(".", ""));
                     break;
                 case "R.U.C":
                     if(cell.length()<13 && cell.matches(".*\\d.*")){
