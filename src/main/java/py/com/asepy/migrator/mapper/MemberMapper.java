@@ -39,8 +39,9 @@ public class MemberMapper {
         MembersEntity member = new MembersEntity();
         for (int i = 0; i< csvRow.length ; i++){
             String cell = csvRow[i];
-            if(cell == null || "-".equals(cell)) continue;
+            if(cell == null || "".equals(cell) || "-".equals(cell)) continue;
             switch (csvHeaderPositionNameMap.get(i)) {
+                case "Nº":
                 case "ID":
                     member.setRefId(Integer.parseInt(cell));
                     break;
@@ -57,7 +58,7 @@ public class MemberMapper {
                     member.setMailId(cell);
                     break;
                 case "Cédula de Identidad":
-                    member.setNationalId(cell.replace(".", ""));
+                    member.setNationalId(cell.replace(".", "").replace(",", ""));
                     break;
                 case "R.U.C":
                     if(cell.length()<13 && cell.matches(".*\\d.*")){
